@@ -1,10 +1,10 @@
 let myKey="mappe";
 let myToken="eee8fe52-399b-49a0-be7e-0d8f2bf5e450";
-const prendiDati = (via, citta) => {
+const prendiDati = (via) => {
     return new Promise((resolve, reject) => {
         //console.log("https://us1.locationiq.com/v1/search?key=pk.6ce44662827952ac04f47a6165745bb3&q="+via+","+citta +"&format=json&"
 //);
-        fetch("https://us1.locationiq.com/v1/search?key=pk.6ce44662827952ac04f47a6165745bb3&q="+via+","+citta +"&format=json&"
+        fetch("https://us1.locationiq.com/v1/search?key=pk.6ce44662827952ac04f47a6165745bb3&q="+via +"&format=json&"
             
         )
         .then(r => r.json())
@@ -120,7 +120,7 @@ let placess = [
 
  render();
  const viaInput=document.getElementById("via");
- const cittaInput=document.getElementById("città");
+ //const cittaInput=document.getElementById("città");
  const InviaInput=document.getElementById("invia");
 
 
@@ -128,16 +128,15 @@ let placess = [
  InviaInput.onclick=()=>{
     console.log(cittaInput);
     let viaT= viaInput.value;
-    let cittaT=cittaInput.value;
+    //let cittaT=cittaInput.value;
     viaInput.value="";
     cittaInput.value="";
-    prendiDati(viaT,cittaT).then((responce)=>{
-let dim=responce.length;
-let valToUse=null;
-valToUse=responce[0];
-let long=valToUse["lon"];
-let lat=valToUse["lat"];
-salvaDati(viaT+" "+cittaT,long, lat).then()
+    prendiDati(viaT).then((responce)=>{
+        let dim=responce.length;
+        let valToUse=null;
+        valToUse=responce[0];
+        let long=valToUse["lon"];
+        let lat=valToUse["lat"];
+        salvaDati(viaT+" "+cittaT,long, lat).then(render);
     });
-    render();
- }
+}
