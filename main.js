@@ -127,17 +127,21 @@ let placess = [
 
 
  InviaInput.onclick=()=>{
-    console.log(cittaInput);
+   // console.log(cittaInput);
     let viaT= viaInput.value;
     //let cittaT=cittaInput.value;
     viaInput.value="";
-    cittaInput.value="";
+    //cittaInput.value="";
     prendiDati(viaT).then((responce)=>{
         let dim=responce.length;
         let valToUse=null;
         valToUse=responce[0];
         let long=valToUse["lon"];
         let lat=valToUse["lat"];
-        salvaDati(viaT+" "+cittaT,long, lat).then(render);
+        salvaDati(viaT+" ",long, lat).then(render);
     });
 }
+
+
+//Togliere la cash
+//Togliere salva dati e oprendi dati e prendere il nome long e latituidine secondo dizionario su cipiace info, buttarlo dentro e via
