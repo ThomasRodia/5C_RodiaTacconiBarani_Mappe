@@ -1,147 +1,72 @@
-let myKey="mappe";
-let myToken="eee8fe52-399b-49a0-be7e-0d8f2bf5e450";
 
-/*const prendiDati = (via) => {
+const prendiDati = (via) => {
     return new Promise((resolve, reject) => {
-        //console.log("https://us1.locationiq.com/v1/search?key=pk.6ce44662827952ac04f47a6165745bb3&q="+via+","+citta +"&format=json&"
-//);
         fetch("https://us1.locationiq.com/v1/search?key=pk.6ce44662827952ac04f47a6165745bb3&q="+via +"&format=json&"
             
         )
         .then(r => r.json())
         .then(r => {
-            //console.log(r);
-           // const data = JSON.parse(r.result);
-           // resolve(data);
             resolve(r);
         })
         .catch(error => reject(error));
     });
 };
 
+let places = [
+  { name: "Piazza del Duomo", coords: [45.4639102, 9.1906426] },
+  { name: "Darsena", coords: [45.4536286, 9.1755852] },
+  { name: "Parco Lambro", coords: [45.4968296, 9.2505173] },
+  { name: "Stazione Centrale", coords: [45.48760768, 9.2038215] }
+];
 
-const prendiDatiCache = (chiave, token) => {
-    return new Promise((resolve, reject) => {
-      fetch('https://ws.cipiaceinfo.it/cache/get', {// da cambiare
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "key": "eee8fe52-399b-49a0-be7e-0d8f2bf5e450"
-        },
-        body: JSON.stringify({
-          key: "mappe"
-        })
-      })
-        .then(r => r.json())
-        .then(r => {
-          //  console.log(r);
-          const data = JSON.parse(r.result);
-          resolve(data);
-        })
-        .catch(error => reject(error));
-    });
-  }
+let zoom = 12;
+let maxZoom = 19;
+let map = L.map('map').setView(places[0].coords, zoom);
 
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: maxZoom,
+  attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
 
-
-
-
-const salvaDati = (titolo, long, lat ) => {
-    return new Promise((resolve, reject) => {
-        prendiDatiCache(myKey, myToken)// prima di salvare i nuovi dati prendi i veccchi dati 
-        .then(vecchiDati => {
-          const nuoviDati = [
-            ...vecchiDati,{
-            "name": titolo,
-            "coords":[lat,long]
-            }
-          ];
-
-
-          // a questo punto metti sulla cache i nuovi dati 
-          fetch("https://ws.cipiaceinfo.it/cache/set", {//Da cambiare url 
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              "key": myToken
-            },
-            body: JSON.stringify({
-              key: myKey,
-              value: JSON.stringify(nuoviDati)
-            })
-          })
-            .then(r => r.json())
-            .then(result => {
-              resolve(result);
-            })
-            .catch(error => reject(error));
-        })
-        .catch(error => reject(error));
-    
-    });
-}
-*/
-
-
-
-let placess = [
-    {
-       name: "Piazza del Duomo",
-       coords: [45.4639102, 9.1906426]
-    }
- ];
- let zoom = 12;
- let maxZoom = 19;
- let map=null;
-
-
-
-  map = L.map('map').setView(placess[0].coords, zoom);
- L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: maxZoom,
-    attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
- }).addTo(map);
-
-
- function render(){
-    prendiDatiCache().then((places)=>{
-       // console.log("risultato" );
-        console.log(places );
- places.forEach((place) => {
+// Funzione per creare marker per ogni luogo in places
+function render() {
+  places.forEach((place) => {
     const marker = L.marker(place.coords).addTo(map);
     marker.bindPopup(`<b>${place.name}</b>`);
- });
- });
-
-
-
-
- }
-
-
- render();
- const viaInput=document.getElementById("via");
- //const cittaInput=document.getElementById("città");
- const InviaInput=document.getElementById("invia");
-
-
-
- InviaInput.onclick=()=>{
-   // console.log(cittaInput);
-    let viaT= viaInput.value;
-    //let cittaT=cittaInput.value;
-    viaInput.value="";
-    //cittaInput.value="";
-    prendiDati(viaT).then((responce)=>{
-        let dim=responce.length;
-        let valToUse=null;
-        valToUse=responce[0];
-        let long=valToUse["lon"];
-        let lat=valToUse["lat"];
-        salvaDati(viaT+" ",long, lat).then(render);
-    });
+  });
 }
 
+// Inizializza la mappa con i marker iniziali
+render();
 
-//Togliere la cash
-//Togliere salva dati e oprendi dati e prendere il nome long e latituidine secondo dizionario su cipiace info, buttarlo dentro e via
+const viaInput = document.getElementById("via");
+const InviaInput = document.getElementById("invia");
+
+InviaInput.onclick = () => {
+  let viaT = viaInput.value.trim();
+  viaInput.value = ""; // Reset dell'input
+
+  // Ottieni le coordinate dell'indirizzo inserito
+  prendiDati(viaT).then((response) => {
+      if (response && response.length > 0) {
+          let valToUse = response[0];
+          let long = parseFloat(valToUse["lon"]);
+          let lat = parseFloat(valToUse["lat"]);
+
+          // Aggiungi il nuovo indirizzo a places
+          let newPlace = { name: viaT, coords: [lat, long] };
+          places.push(newPlace);
+
+          // Aggiungi il marker sulla mappa per il nuovo indirizzo
+          const marker = L.marker(newPlace.coords).addTo(map);
+          marker.bindPopup(`<b>${newPlace.name}</b>`).openPopup();
+
+          // Centra la mappa sul nuovo marker
+          map.setView(newPlace.coords, zoom);
+      } else {
+          console.error("Indirizzo non trovato");
+      }
+  }).catch(error => {
+      console.error("Errore nella ricerca dell'indirizzo:", error);
+  });
+};
